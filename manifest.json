@@ -1,0 +1,19 @@
+{
+    "background": {
+       "persistent": true,
+       "scripts": [ "content.js" ]
+    },
+    "browser_action": {
+     //  "default_icon": "at.png",
+       "default_popup": "popup.html"
+    },
+    // "icons": {
+    //    "256": "at.png"
+    // },
+    "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAkoRwoFq8KzH2NQU8xaNseN3qjyWlap6aQn6wYwfnfyvzqqaxqcMXX7MBWTcT8FTYur1Q99omPL650NTkLYprkH/KXIWiiibtxfkjlYVZUYbZ7jhJ5QJdSwyyaTPjDe7OkPTPtCYJJ0io/lsMaf3P6Ba4RBpxG/Dps6f5xd03A0dl4CkF0sZMi3JTTpC5+zMc5fpVQqmQo9aXbi3O+SMjMwJ0nNRjZrrfuIqo18nfc6w1ss493e2LEuFFLdV9W8fGTGhF40D5hcXYj5eK4XrK1mJxdTh9+IGloaihyE8g3AHL+uyRTNCJB+IWCxz0NFt5WhJ27RoUG82MZcBny3thFQIDAQAB",
+    "manifest_version": 2,
+    "name": "Google Account Services Shortcuts",
+    "permissions": [ "contextMenus", "tabs", "storage" ],
+    "update_url": "https://clients2.google.com/service/update2/crx",
+    "version": "1.3"
+ }

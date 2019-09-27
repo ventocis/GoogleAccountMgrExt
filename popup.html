@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html style=min-width:600px>
+
+<head>
+  <style>
+
+    .row {
+      display: flex;
+      justify-content: center;
+    }
+
+    .left-div {
+      border-radius: 15px;
+      /* box-shadow: 15px 15px 25px -25px; */
+      margin: 2%;
+      padding: 2%;
+      background-color: hsla(219, 100%, 33%, 0.199);
+      display: inline-block;
+      float: left;
+      width: 40%;
+    }
+
+    .right-div {
+      border-radius: 15px;
+      /* box-shadow: 15px 15px 25px -25px; */
+      margin: 2%;
+      padding: 2%;
+      background-color: #003aa833;
+      float: left;
+      display: inline-block;
+      width: 40%;
+    }
+
+    .left-div2 {
+      margin-left: 5%;
+      margin-bottom: 10px;
+      float: left;
+      display: inline-block;
+      width: 35%;
+    }
+    .right-div2 {
+      margin-right: 5%;
+      margin-bottom: 10px;
+      float: right;
+      display: inline-block;
+      width: 55%;
+    }
+
+    .button {
+      background-color: #071630c5;
+      border-radius: 10px;
+      color: white;
+      padding: 4px;
+      border: none;
+      cursor: pointer;
+    }
+
+    body {
+      color: #071630c5;
+      font-size: .92em;
+    }
+
+  </style>
+  <script src="popup.js"></script>
+</head>
+
+
+
+
+
+
+<body>
+  
+  <h2 style="text-align:center; color: #071630c5;">Shortcuts for Google Account Services</h2>
+
+  <div class="row">
+    <div class="left-div">
+      <form id="form">
+        <h3>Add New Account</h3>
+        <span>Enter your email:</span>
+        <input type="email" name="email" id="email" style="min-width:35%"/><br><br>
+        <span>Enter account nickname:</span>
+        <input type="text" name="accName" id="accName" style="min-width:35%"/><br><br>
+        <span>Select your desired links:</span><br>
+        <input type="checkbox" name="calendar" value="calendar" id="calendarOption">Calendar<br>
+        <input type="checkbox" name="drive" value="drive" id="driveOption">Drive<br>
+        <input type="checkbox" name="gmail" value="gmail" id="gmailOption">Gmail<br><br>
+        <button class="button" type="submit" id="mySubmit">Add Account</button>
+      </form>
+    </div>
+    <div class="right-div">
+      <form id="delete">
+        <h3>Delete Existing Account</h3>
+        <span>Enter your email:</span>
+        <input type="email" name="email" id="deleteEmail" style="min-width:35%"/><br><br>
+        <button class="button" type="submit">Delete Account</button>
+      </form>
+    </div>
+  </div>
+  <br>
+  <div class="left-div2">
+  <span style="text-align: left; display: block; font-size: .88em">Developed by Sam Ventocilla</span>
+</div>
+<div class="right-div2">
+  <a  id="newForm" href="https://www.google.com/" style="text-align: right; display: block; font-size: .88em">Report a bug</a>
+</div>
+</body>
+
+</html>

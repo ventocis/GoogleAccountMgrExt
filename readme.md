@@ -1,4 +1,4 @@
- #Google Account Manager
+ # Google Account Manager
 
 **This extension provides a shortcut to common Google services for certain accounts**
 

@@ -19,10 +19,10 @@ var fake = [];
 // });
 
 chrome.storage.sync.get("oNicknames", function (result) {
-    if (result.oNicknames == undefined)
+    if (result.oNicknames !== undefined)
         nicknames = result.oNicknames;
-    else
-        alert("hello" + nicknames);
+
+    alert("nicknames: " + nicknames);
 });
 
 chrome.storage.sync.get("fake", function (result) {
@@ -31,17 +31,15 @@ chrome.storage.sync.get("fake", function (result) {
 });
 
 chrome.storage.sync.get("oContextIds", function (result) {
-    contextIds = result.oContextIds;
-    alert(contextIds);
+    if (result.oContextIds !== undefined)
+        contextIds = result.oContextIds;
+    alert("contextIds" + contextIds);
 });
 
 chrome.storage.sync.get("onlineEmails", function (result) {
-    if (result.onlineEmails == null)
-        alert("null");
-    else
-        alert("not null");
-    emails = result.onlineEmails;
-    alert(emails);
+    if (result.onlineEmails !== undefined)
+        emails = result.onlineEmails;
+    
     initializeMenus();
 });
 
@@ -99,14 +97,14 @@ function initializeMenus() {
             addMenus(emails[i], ids, nicknames[i], true);
         }
     }
-    else
-        emails.length = 0;
+
 }
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 
 
     if (request.message === "addAccount") {
+        alert(request.newAccounts);
         if (request.newEmail.length == 0) {
             alert("Please enter an email");
             return;
@@ -137,10 +135,10 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
                 return;
             }
         }
-        nicknames.push(request.nickname);
-        emails.push(request.newEmail);
+        //nicknames.push(request.nickname);
+        //emails.push(request.newEmail);
         addMenus(request.newEmail, request.newAccounts, request.nickname, false);
-        sendResponse({ message: "hi to you" });
+        //sendResponse({ message: "hi to you" });
     }
 
     else if (request.message === "deleteAccount") {
@@ -187,6 +185,8 @@ function deleteMenus(email) {
 
 function addMenus(email, accounts, nickname, isStartUp) {
     var check = false;
+
+    alert("IN")
 
     for (var i = 0; i < contextIds.length; i++) {
         if (contextIds[i].includes(email)) {

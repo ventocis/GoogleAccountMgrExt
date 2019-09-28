@@ -4,6 +4,9 @@ var user = '';
 function addContextMenu(accounts) {
   email = (document.getElementById('email').value);
   accName = (document.getElementById('accName').value);
+  accounts = getChckdAccts("srvcs");
+
+  alert("accounts:: " + accounts);
 
   document.getElementById('email').value = '';
   document.getElementById('accName').value = '';
@@ -13,6 +16,25 @@ function addContextMenu(accounts) {
 
 function deleteContextMenus(email) {
   chrome.runtime.sendMessage({ message: "deleteAccount", newEmail: email });
+}
+
+
+/** Iterates through the checked checkboxes with name "checkboxName"
+ * in popup.html
+ * @returns an array of the checked checkboxes
+ */
+function getChckdAccts(checkboxName){
+  var checkboxes = document.getElementsByName(checkboxName);
+  var checkedCheckboxes = [];
+  for (var i = 0; i < checkboxes.length; i++){
+    if(checkboxes[i].checked){
+      checkedCheckboxes.push(checkboxes[i].value);
+    }
+  }
+
+
+  alert("checked:: " + checkedCheckboxes)
+  return checkedCheckboxes;
 }
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -28,7 +50,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
       }
     }
-    alert(emails);
+    alert("c1" + emails);
     addContextMenu(emails);
 
   })

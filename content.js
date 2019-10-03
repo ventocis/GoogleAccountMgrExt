@@ -7,7 +7,7 @@ var fake = [];
 
 /** Get the nicknames from the cloud storage */
 chrome.storage.sync.get("oNicknames", function (result) {
-    if (result.oNicknames !== undefined)
+    // if (result.oNicknames !== undefined)
         nicknames = result.oNicknames;
 
     alert("nicknames: " + nicknames);
@@ -16,15 +16,16 @@ chrome.storage.sync.get("oNicknames", function (result) {
 
 /** Get the context ID's from the cloud storage */
 chrome.storage.sync.get("oContextIds", function (result) {
-    if (result.oContextIds !== undefined)
+    // if (result.oContextIds !== undefined)
         contextIds = result.oContextIds;
-    alert("contextIds" + contextIds);
+    alert("contextIds: " + contextIds);
 });
 
 /** Gets the emails from the cloud storage */
 chrome.storage.sync.get("onlineEmails", function (result) {
-    if (result.onlineEmails !== undefined)
-        emails = result.onlineEmails;
+    // if (result.onlineEmails !== undefined)
+    emails = result.onlineEmails;
+    alert("emails: " + result.onlineEmails);
     
     initializeMenus();
 });
@@ -113,7 +114,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
             for (var i = 0; i < contextIds.length; i++) {
                 if (request.newEmail + request.newAccounts[k] === contextIds[i]) {
                     alert("The shortcut for " + request.newEmail + " " + request.newAccounts[k] + " already exists");
-                    return;
+                    request.newAccounts.splice(k, 1);
                 }
             }
         }
@@ -155,6 +156,10 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
         alert("emails " + emails);
         alert("nicknames " + nicknames);
         alert("contextIds " + contextIds);
+    }
+
+    else if (request.message === "displayValues") {
+        displayValues();
     }
 
     chrome.storage.sync.set({ onlineEmails: emails });
@@ -237,10 +242,30 @@ function addMenus(email, accounts, nickname, isStartUp) {
             });
         }
 
-        if (!isStartUp)
+        if (!isStartUp) {
             contextIds.push(email + accounts[i])
+            emails.push(email);
+            nicknames.push(nickname);
+        }
+        
     }
 
     alert("Account shortcut(s) added");
 }
 
+function displayValues() {
+    chrome.storage.sync.get("oNicknames", function (result) {
+        alert("nicknames: " + result.oNicknames);
+    });
+
+
+    /** Get the context ID's from the cloud storage */
+    chrome.storage.sync.get("oContextIds", function (result) {
+        alert("contextIds: " + result.oContextIds);
+    });
+
+    /** Gets the emails from the cloud storage */
+    chrome.storage.sync.get("onlineEmails", function (result) {
+        alert("onlineEmails: " + result.onlineEmails);
+    });
+}

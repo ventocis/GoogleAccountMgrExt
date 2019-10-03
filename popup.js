@@ -67,4 +67,10 @@ document.addEventListener("DOMContentLoaded", function () {
     e.preventDefault();
     chrome.tabs.create({active: true, url: "https://www.google.com/"});
   })
+
+
+document.getElementById("showValues").addEventListener('click', function (e) {
+  e.preventDefault();
+  chrome.runtime.sendMessage({ message: "displayValues" });
+})
 }, false);

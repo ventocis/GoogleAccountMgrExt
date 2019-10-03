@@ -1,49 +1,37 @@
+//TODO: See if there's a better way than using global vars
+
 var emails = [];
 var contextIds = [];
 var nicknames = [];
 var fake = [];
 
-// chrome.storage.sync.get("onlineEmails", function(result) {
-//     alert(result.onlineEmails);
-// });
-
-// chrome.storage.sync.get("oNicknames", function(result) {
-//     alert(result.oNicknames);
-// });
-
-// chrome.storage.sync.get("oContextIds", function(result) {
-//     alert(result.oContextIds);
-// });
-// chrome.storage.sync.set({ 'onlineEmails': ["hello"] }, function () {
-//     alert("saved")
-// });
-
+/** Get the nicknames from the cloud storage */
 chrome.storage.sync.get("oNicknames", function (result) {
-    if (result.oNicknames !== undefined)
+    // if (result.oNicknames !== undefined)
         nicknames = result.oNicknames;
 
     alert("nicknames: " + nicknames);
 });
 
-chrome.storage.sync.get("fake", function (result) {
-    fake = result.fake;
-    alert(fake);
-});
 
+/** Get the context ID's from the cloud storage */
 chrome.storage.sync.get("oContextIds", function (result) {
-    if (result.oContextIds !== undefined)
+    // if (result.oContextIds !== undefined)
         contextIds = result.oContextIds;
-    alert("contextIds" + contextIds);
+    alert("contextIds: " + contextIds);
 });
 
+/** Gets the emails from the cloud storage */
 chrome.storage.sync.get("onlineEmails", function (result) {
-    if (result.onlineEmails !== undefined)
-        emails = result.onlineEmails;
+    // if (result.onlineEmails !== undefined)
+    emails = result.onlineEmails;
+    alert("emails: " + result.onlineEmails);
     
     initializeMenus();
 });
 
 
+/** Liste */
 chrome.storage.onChanged.addListener(function (changes, namespace) {
     var anythingChange = false;
     for (var key in changes) {
@@ -80,12 +68,14 @@ chrome.storage.onChanged.addListener(function (changes, namespace) {
     }
 });
 
+/** Opens a new tab on their computer */
 function openNewTab() {
     chrome.tabs.create({ url: route + user });
 }
 
 function initializeMenus() {
     var ids = [];
+    
     if (emails != undefined && contextIds != undefined && nicknames != undefined) {
         for (var i = 0; i < emails.length; i++) {
             ids = [];
@@ -124,7 +114,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
             for (var i = 0; i < contextIds.length; i++) {
                 if (request.newEmail + request.newAccounts[k] === contextIds[i]) {
                     alert("The shortcut for " + request.newEmail + " " + request.newAccounts[k] + " already exists");
-                    return;
+                    request.newAccounts.splice(k, 1);
                 }
             }
         }
@@ -168,10 +158,15 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
         alert("contextIds " + contextIds);
     }
 
+    else if (request.message === "displayValues") {
+        displayValues();
+    }
+
     chrome.storage.sync.set({ onlineEmails: emails });
     chrome.storage.sync.set({ oContextIds: contextIds });
     chrome.storage.sync.set({ oNicknames: nicknames });
 });
+
 
 function deleteMenus(email) {
     var index = emails.indexOf(email);
@@ -186,7 +181,6 @@ function deleteMenus(email) {
 function addMenus(email, accounts, nickname, isStartUp) {
     var check = false;
 
-    alert("IN")
 
     for (var i = 0; i < contextIds.length; i++) {
         if (contextIds[i].includes(email)) {
@@ -248,10 +242,30 @@ function addMenus(email, accounts, nickname, isStartUp) {
             });
         }
 
-        if (!isStartUp)
+        if (!isStartUp) {
             contextIds.push(email + accounts[i])
+            emails.push(email);
+            nicknames.push(nickname);
+        }
+        
     }
 
     alert("Account shortcut(s) added");
 }
 
+function displayValues() {
+    chrome.storage.sync.get("oNicknames", function (result) {
+        alert("nicknames: " + result.oNicknames);
+    });
+
+
+    /** Get the context ID's from the cloud storage */
+    chrome.storage.sync.get("oContextIds", function (result) {
+        alert("contextIds: " + result.oContextIds);
+    });
+
+    /** Gets the emails from the cloud storage */
+    chrome.storage.sync.get("onlineEmails", function (result) {
+        alert("onlineEmails: " + result.onlineEmails);
+    });
+}

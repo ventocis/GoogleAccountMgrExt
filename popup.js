@@ -6,12 +6,10 @@ function addContextMenu(accounts) {
   accName = (document.getElementById('accName').value);
   accounts = getChckdAccts("srvcs");
 
-  alert("accounts:: " + accounts);
-
   document.getElementById('email').value = '';
   document.getElementById('accName').value = '';
 
-  chrome.runtime.sendMessage({ message: "addAccount", newEmail: email, newAccounts: accounts, nickname: accName });
+  chrome.runtime.sendMessage({ message: "addAccount", newEmail: email, newServices: accounts, newNickName: accName });
 }
 
 function deleteContextMenus(email) {
@@ -32,8 +30,6 @@ function getChckdAccts(checkboxName){
     }
   }
 
-
-  alert("checked:: " + checkedCheckboxes)
   return checkedCheckboxes;
 }
 
@@ -46,11 +42,9 @@ document.addEventListener("DOMContentLoaded", function () {
       if (getInputs[i].type === 'checkbox') {
         if (getInputs[i].checked === true) {
           emails.push(getInputs[i].value);
-          alert(getInputs[i].value)
         }
       }
     }
-    alert("c1" + emails);
     addContextMenu(emails);
 
   })
@@ -65,12 +59,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
   document.getElementById("newForm").addEventListener('click', function (e) {
     e.preventDefault();
-    chrome.tabs.create({active: true, url: "https://www.google.com/"});
+    chrome.tabs.create({ active: true, url: "https://forms.gle/xMMv2oVKVbzUsMLj6"});
   })
 
-
-document.getElementById("showValues").addEventListener('click', function (e) {
-  e.preventDefault();
-  chrome.runtime.sendMessage({ message: "displayValues" });
-})
+  //Just used for testing
+  // document.getElementById("showValues").addEventListener('click', function (e) {
+  //   e.preventDefault();
+  //   chrome.runtime.sendMessage({ message: "displayValues" });
+  // })
 }, false);

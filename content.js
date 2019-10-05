@@ -1,271 +1,217 @@
 //TODO: See if there's a better way than using global vars
+//TODO: Fix bug with overlapping emails
 
-var emails = [];
-var contextIds = [];
-var nicknames = [];
-var fake = [];
+var accounts = [];
 
-/** Get the nicknames from the cloud storage */
-chrome.storage.sync.get("oNicknames", function (result) {
-    // if (result.oNicknames !== undefined)
-        nicknames = result.oNicknames;
-
-    alert("nicknames: " + nicknames);
-});
-
-
-/** Get the context ID's from the cloud storage */
-chrome.storage.sync.get("oContextIds", function (result) {
-    // if (result.oContextIds !== undefined)
-        contextIds = result.oContextIds;
-    alert("contextIds: " + contextIds);
-});
-
-/** Gets the emails from the cloud storage */
-chrome.storage.sync.get("onlineEmails", function (result) {
-    // if (result.onlineEmails !== undefined)
-    emails = result.onlineEmails;
-    alert("emails: " + result.onlineEmails);
-    
+/** Gets the accounts from the cloud storage */
+chrome.storage.sync.get("oAccounts", function (result) {
+    if (result.oAccounts !== undefined)
+        accounts = result.oAccounts;
+    else
+        accounts = [];    
     initializeMenus();
 });
 
-
-/** Liste */
-chrome.storage.onChanged.addListener(function (changes, namespace) {
-    var anythingChange = false;
-    for (var key in changes) {
-        var storageChange = changes[key];
-        if (key == "oContextIds") {
-            if (String(storageChange.newValue) != String(contextIds)) {
-                alert("old context IDS: " + contextIds + "new: " + storageChange.newValue);
-                anythingChange = true;
-                contextIds = storageChange.newValue
-                alert('context Ids updated to ' + contextIds);
-            }
-        }
-
-        else if (key === "oNicknames") {
-            if (String(storageChange.newValue) != String(nicknames)) {
-                anythingChange = true;
-                nicknames = storageChange.newValue;
-                alert('nicknames Ids updated to ' + nicknames);
-            }
-        }
-
-        else if (key === "onlineEmails") {
-            if (String(storageChange.newValue) != String(emails)) {
-                anythingChange = true;
-                emails = storageChange.newValue;
-                alert("emails updated to " + emails)
-            }
-        }
-    }
-
-    if (anythingChange) {
-        chrome.contextMenus.removeAll();
-        initializeMenus();
-    }
-});
-
-/** Opens a new tab on their computer */
-function openNewTab() {
-    chrome.tabs.create({ url: route + user });
-}
-
-function initializeMenus() {
-    var ids = [];
-    
-    if (emails != undefined && contextIds != undefined && nicknames != undefined) {
-        for (var i = 0; i < emails.length; i++) {
-            ids = [];
-            for (var k = 0; k < contextIds.length; k++) {
-                if (contextIds[k].includes(emails[i]))
-                    ids.push(contextIds[k].substring(emails[i].length));
-            }
-
-            addMenus(emails[i], ids, nicknames[i], true);
-        }
-    }
-
-}
-
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-
+    let sameEmail = false;
+    let difNickName = false;
 
     if (request.message === "addAccount") {
-        alert(request.newAccounts);
+        let newAccount;
         if (request.newEmail.length == 0) {
             alert("Please enter an email");
             return;
         }
 
-        if (request.newAccounts.length == 0) {
+        if (request.newServices.length == 0) {
             alert("Please check a desired link. (Calendar, Drive, or Gmail)");
             return;
         }
 
-        if (request.nickname.length == 0) {
+        if (request.newNickName.length == 0) {
             alert("Please enter a nickname");
             return;
         }
 
-        for (var k = 0; k < request.newAccounts.length; k++) {
-            for (var i = 0; i < contextIds.length; i++) {
-                if (request.newEmail + request.newAccounts[k] === contextIds[i]) {
-                    alert("The shortcut for " + request.newEmail + " " + request.newAccounts[k] + " already exists");
-                    request.newAccounts.splice(k, 1);
+        if (accounts != undefined) {
+            accounts.forEach(element => {
+                if (request.newEmail == element.email) {
+                    sameEmail = true;
+                    // Covers the case where they may request to add an email that already exists with a 
+                    // nickname that differs from the existing nickname
+                    if (request.newNickName != element.nickName) {
+                        alert("An account with this email already exists under the nickname: " + element.nickName +
+                            "\nUse that nickname to add more links or delete the email to start over with a new nickname.")
+                        difNickName = true;
+                    }
+                    if (!difNickName && sameEmail) {
+                        element.services.forEach(check => {
+                            request.newServices.forEach(newServ => {
+                                if (check === newServ) {
+                                    alert(request.newEmail + " " + check + " already exists.")
+                                    request.newServices.splice(request.newServices.indexOf(check), 1);
+                                }
+                            });
+                        });
+                    }
                 }
-            }
+            });
+
+            if (difNickName)
+                return;
         }
 
-        for (var i = 0; i < nicknames.length; i++) {
-            if (nicknames[i] === request.nickname) {
-                alert("Nickname " + request.nickname + " already taken.");
-                return;
-            }
+        // Make sure that there are still some services that need to be added 
+        // & that they weren't all duplicate services
+        if (request.newServices.length == 0)
+            return;
+        else {
+            newAccount = createOrUpdateAccount(request.newEmail, request.newNickName, request.newServices, sameEmail);
+            addMenus(newAccount, false, sameEmail);
         }
-        //nicknames.push(request.nickname);
-        //emails.push(request.newEmail);
-        addMenus(request.newEmail, request.newAccounts, request.nickname, false);
-        //sendResponse({ message: "hi to you" });
     }
 
     else if (request.message === "deleteAccount") {
+        // Holds if the email is a an email that exists in accounts[]
         var isThere = false;
 
-        for (var i = 0; i < emails.length; i++) {
-            if (emails[i] === request.newEmail)
+        //Determine if the email exists in accounts[]
+        accounts.forEach(element => {
+            if (element.email === request.newEmail)
                 isThere = true;
-        }
+        });
+        
 
 
         if (isThere) {
-            deleteMenus(request.newEmail);
-            for (var k = 0; k < contextIds.length; k++) {
-                if (contextIds[k].includes(request.newEmail)) {
-                    contextIds.splice(k, 1);
-                    k = k - 1;
-                }
-            }
+            deleteAccount(request.newEmail);
             alert("Account deleted");
         }
         else {
             alert("Email doesn't exist");
         }
-        alert("emails " + emails);
-        alert("nicknames " + nicknames);
-        alert("contextIds " + contextIds);
     }
 
-    else if (request.message === "displayValues") {
-        displayValues();
-    }
+    //T
+    // else if (request.message === "displayValues") {
+    //     displayValues();
+    // }
 
-    chrome.storage.sync.set({ onlineEmails: emails });
-    chrome.storage.sync.set({ oContextIds: contextIds });
-    chrome.storage.sync.set({ oNicknames: nicknames });
+    chrome.storage.sync.set({"oAccounts": accounts})
 });
 
 
-function deleteMenus(email) {
-    var index = emails.indexOf(email);
-    if (index > -1) {
-        emails.splice(index, 1);
-        nicknames.splice(index, 1);
-    }
-    index = contextIds.indexOf(email)
+function deleteAccount(email) {
+    let index = -1;
+    accounts.forEach(element => {
+        if (element.email === email)
+            accounts.splice(index, 1);
+    });
+    
     chrome.contextMenus.remove(email);
 }
 
-function addMenus(email, accounts, nickname, isStartUp) {
-    var check = false;
+function addMenus(newAccount, isStartUp, sameEmail) {
+    // var check = false;
 
-
-    for (var i = 0; i < contextIds.length; i++) {
-        if (contextIds[i].includes(email)) {
-            check = true;
-        }
+    //Add each account into 
+    if (!sameEmail) {
+        chrome.contextMenus.create({
+            title: newAccount.nickName,
+            id: newAccount.email,
+            contexts: ["all"]
+        });
+    
     }
 
-
-    if (!check || isStartUp) {
-
-        chrome.contextMenus.create({
-            title: nickname,
-            id: email,
-            contexts: ["all"],
+    try {
+        newAccount.services.forEach(accService => {
+            chrome.contextMenus.create({
+                title: accService,
+                id: newAccount.email + accService,
+                parentId: newAccount.email,
+                contexts: ["all"],
+                onclick: function () {
+                    if (accService === "Gmail")
+                        route = "https://mail.google.com/mail/u/?authuser=";
+                    else if (accService === "Drive")
+                        route = "https://drive.google.com/drive/u/?authuser=";
+                    else if (accService === "Calendar")
+                        route = "https://calendar.google.com/calendar/?authuser="
+                    user = newAccount.email;
+                    openNewTab(route, user);
+                }
+            });
         });
     }
 
-    alert("accounts " + accounts);
-    for (var i = 0, max = accounts.length; i < max; i++) {
-        if (accounts[i] === "gmail") {
-            chrome.contextMenus.create({
-                title: "Gmail",
-                id: email + accounts[i],
-                parentId: email,
-                contexts: ["all"],
-                onclick: function () {
-                    route = 'https://mail.google.com/mail/u/?authuser=';
-                    user = email;
-                    openNewTab();
-                }
-            });
-        }
-
-        else if (accounts[i] === "drive") {
-            chrome.contextMenus.create({
-                title: "Drive",
-                id: email + accounts[i],
-                parentId: email,
-                contexts: ["all"],
-                onclick: function () {
-                    route = 'https://drive.google.com/drive/u/?authuser=';
-                    user = email;
-                    openNewTab();
-                }
-            });
-        }
-
-        else if (accounts[i] === "calendar") {
-            chrome.contextMenus.create({
-                title: "Calendar",
-                id: email + accounts[i],
-                parentId: email,
-                contexts: ["all"],
-                onclick: function () {
-                    route = 'https://calendar.google.com/calendar/?authuser=';
-                    user = email;
-                    openNewTab();
-                }
-            });
-        }
-
-        if (!isStartUp) {
-            contextIds.push(email + accounts[i])
-            emails.push(email);
-            nicknames.push(nickname);
-        }
-        
+    catch (err) {
+        //Empty catch statement to catch any errors with overlapping functions
     }
-
-    alert("Account shortcut(s) added");
 }
 
+function initializeMenus() {
+
+    accounts.forEach(newAccount => {
+        chrome.contextMenus.create({
+            title: newAccount.nickName,
+            id: newAccount.email,
+            contexts: ["all"]
+        });
+        newAccount.services.forEach(accService => {
+            chrome.contextMenus.create({
+                title: accService,
+                id: newAccount.email + accService,
+                parentId: newAccount.email,
+                contexts: ["all"],
+                onclick: function () {
+                    if (accService === "Gmail")
+                        route = "https://mail.google.com/mail/u/?authuser=";
+                    else if (accService === "Drive")
+                        route = "https://drive.google.com/drive/u/?authuser=";
+                    else if (accService === "Calendar")
+                        route = "https://calendar.google.com/calendar/?authuser="
+                    user = newAccount.email;
+                    openNewTab();
+                }
+            });
+        });
+    });
+}
+
+
+/** Opens a new tab on their computer */
+function openNewTab(route, user) {
+    chrome.tabs.create({ url: route + user });
+}
+
+/** Displays the value of the accounts */
 function displayValues() {
-    chrome.storage.sync.get("oNicknames", function (result) {
-        alert("nicknames: " + result.oNicknames);
+    chrome.storage.sync.get("oAccounts", function (result) {
+        alert("accounts: " + JSON.stringify(result.oAccounts));
     });
 
+}
 
-    /** Get the context ID's from the cloud storage */
-    chrome.storage.sync.get("oContextIds", function (result) {
-        alert("contextIds: " + result.oContextIds);
-    });
+function createOrUpdateAccount(newEmail, newNickName, newServices, sameEmail) {
+    let newAccount = {
+        email: newEmail,
+        nickName: newNickName,
+        services: newServices
+    };
+    if (!sameEmail) {
+        accounts.push(newAccount);
+    }
 
-    /** Gets the emails from the cloud storage */
-    chrome.storage.sync.get("onlineEmails", function (result) {
-        alert("onlineEmails: " + result.onlineEmails);
-    });
+    else {
+        accounts.forEach(element => {
+            if (element.email === newEmail) {
+                newServices.forEach(newServ => {
+                    element.services.push(newServ)
+                });
+            }
+        });
+    }
+
+    return newAccount;
 }

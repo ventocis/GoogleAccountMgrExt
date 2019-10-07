@@ -10,7 +10,7 @@
     "name": "Google Services Shortcuts",
     "permissions": [ "contextMenus", "tabs", "storage" ],
     "update_url": "https://clients2.google.com/service/update2/crx",
-    "version": "0.8.2",
+    "version": "0.8.3",
     "icons": {
       "128": "128pxLogo3",
       "48": "48pxLogo3.png",
